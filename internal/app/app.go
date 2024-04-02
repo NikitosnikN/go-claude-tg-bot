@@ -39,7 +39,7 @@ func (a *App) build() error {
 	// build bot
 	botSettings := telebot.Settings{
 		Token:       a.config.TgBotToken,
-		Poller:      &telebot.LongPoller{Timeout: 10 * time.Second},
+		Poller:      &telebot.LongPoller{Timeout: 30 * time.Second},
 		Synchronous: false,
 	}
 
@@ -54,12 +54,15 @@ func (a *App) build() error {
 	//a.bot.Use(middleware.Logger())
 
 	a.bot.Use(middleware.VerboseLogger())
-	a.bot.Use(middleware.AllowList("nikitosnik"))
-
+	if len(a.config.AllowedUsernames) != 0 {
+		a.bot.Use(middleware.AllowList(a.config.AllowedUsernames...))
+	}
 	// build handlers
+	a.bot.Handle(`/start`, handlers.StartHandler)
+	a.bot.Handle(`/help`, handlers.HelpHandler)
+	a.bot.Handle(`/echo`, handlers.EchoHandler)
 	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(a.claudeClient))
 	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(a.claudeClient))
-	a.bot.Handle(`/echo`, handlers.EchoHandler)
 	return nil
 }
 

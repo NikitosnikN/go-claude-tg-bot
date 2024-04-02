@@ -8,6 +8,8 @@ import (
 	"log"
 )
 
+const imageDefaultPrompt = "Analyze the image, describing its main subject, colors, composition, mood, and any symbolism present."
+
 func PhotoMessageHandler(claude *anthropic.Client) func(c telebot.Context) error {
 	return func(c telebot.Context) error {
 		var (
@@ -16,6 +18,10 @@ func PhotoMessageHandler(claude *anthropic.Client) func(c telebot.Context) error
 			photo = c.Message().Photo
 			err   error
 		)
+
+		if text == "" {
+			text = imageDefaultPrompt
+		}
 
 		if photo == nil {
 			return c.Send("Sorry, cannot find a photo you have send to me. Please try again.")
@@ -34,6 +40,12 @@ func PhotoMessageHandler(claude *anthropic.Client) func(c telebot.Context) error
 		if err != nil {
 			log.Printf("Cannot read photo: %v\n", err)
 			err = c.Send("Sorry, cannot read the photo you have send to me. Please try again.")
+			return err
+		}
+
+		err = c.Notify(telebot.Typing)
+
+		if err != nil {
 			return err
 		}
 
