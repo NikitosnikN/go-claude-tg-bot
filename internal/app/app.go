@@ -61,8 +61,8 @@ func (a *App) build() error {
 	a.bot.Handle(`/start`, handlers.StartHandler)
 	a.bot.Handle(`/help`, handlers.HelpHandler)
 	a.bot.Handle(`/echo`, handlers.EchoHandler)
-	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(a.claudeClient))
-	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(a.claudeClient))
+	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(a.claudeClient, a.config.ClaudeModel))
+	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(a.claudeClient, a.config.ClaudeModel))
 	return nil
 }
 

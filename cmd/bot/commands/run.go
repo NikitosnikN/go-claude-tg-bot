@@ -27,6 +27,13 @@ var RunCommand = &cli.Command{
 			EnvVars:  []string{"APP_ANTHROPIC_API_KEY"},
 		},
 		&cli.StringFlag{
+			Name:    "claude-model",
+			Aliases: []string{"m"},
+			Value:   "claude-3-haiku-20240307",
+			Usage:   "Claude model name",
+			EnvVars: []string{"APP_CLAUDE_MODEL"},
+		},
+		&cli.StringFlag{
 			Name:    "allowed",
 			Usage:   "Allowed usernames to use bot, separated by comma. If not set, anyone can use bot",
 			EnvVars: []string{"APP_ALLOWED_USERNAMES"},
@@ -49,6 +56,7 @@ var RunCommand = &cli.Command{
 		config := config.Config{
 			TgBotToken:       cliCtx.String("tg-bot-token"),
 			AnthropicApiKey:  cliCtx.String("anthropic-api-key"),
+			ClaudeModel:      cliCtx.String("claude-model"),
 			ProxyUrl:         cliCtx.String("proxy"),
 			AllowedUsernames: allowedUsernames,
 		}

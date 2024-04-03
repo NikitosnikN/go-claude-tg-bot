@@ -10,7 +10,7 @@ import (
 
 const imageDefaultPrompt = "Analyze the image, describing its main subject, colors, composition, mood, and any symbolism present."
 
-func PhotoMessageHandler(claude *anthropic.Client) func(c telebot.Context) error {
+func PhotoMessageHandler(claude *anthropic.Client, model string) func(c telebot.Context) error {
 	return func(c telebot.Context) error {
 		var (
 			text  = c.Text()
@@ -50,7 +50,7 @@ func PhotoMessageHandler(claude *anthropic.Client) func(c telebot.Context) error
 		}
 
 		// make request to Claude
-		request := anthropic.NewMessageRequest("claude-3-haiku-20240307", 1024)
+		request := anthropic.NewMessageRequest(model, 1024)
 		request.AddImageMessage("user", payload, "image/jpeg", text)
 
 		response, err := claude.CreateMessageRequest(context.Background(), *request)

@@ -6,7 +6,7 @@ import (
 	"gopkg.in/telebot.v3"
 )
 
-func TextMessageHandler(claude *anthropic.Client) func(c telebot.Context) error {
+func TextMessageHandler(claude *anthropic.Client, model string) func(c telebot.Context) error {
 	return func(c telebot.Context) error {
 		var (
 			text = c.Text()
@@ -17,7 +17,7 @@ func TextMessageHandler(claude *anthropic.Client) func(c telebot.Context) error 
 			return err
 		}
 
-		request := anthropic.NewMessageRequest("claude-3-haiku-20240307", 1024)
+		request := anthropic.NewMessageRequest(model, 1024)
 		request.AddTextMessage("user", text)
 
 		response, err := claude.CreateMessageRequest(context.Background(), *request)
