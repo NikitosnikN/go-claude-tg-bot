@@ -18,6 +18,12 @@ Currently only long-polling way of retrieving new messages is supported.
 - Customizable configuration options
 - Lightweight and efficient implementation in Go
 
+## Installation (via Docker)
+
+```shell
+docker run nikitosnik/go-claude-tg-bot
+```
+
 ## Installation
 
 1. Clone the repository:
@@ -57,6 +63,7 @@ It is possible to configure application via 2 ways:
 | `APP_TG_BOT_TOKEN`      | Telegram bot token obtained from the BotFather..                                             |
 | `APP_ANTHROPIC_API_KEY` | Anthropic API key.                                                                           |
 | `APP_ALLOWED_USERNAMES` | (Optional) Allowed usernames to use bot, separated by comma. If not set, anyone can use bot. |
+| `APP_CLAUDE_MODEL`      | (Optional) Claude model name.                                                                |
 | `APP_PROXY`             | (Optional) Proxy URL. Used for Anthropic API only.                                           |
 
 ## Usage
