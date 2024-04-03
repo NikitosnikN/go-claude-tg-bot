@@ -7,5 +7,5 @@ func EchoHandler(c telebot.Context) error {
 	var (
 		text = c.Text()
 	)
-	return c.Send(text, telebot.ModeMarkdownV2)
+	return c.Send(text)
 }

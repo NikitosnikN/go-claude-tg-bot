@@ -26,6 +26,6 @@ func TextMessageHandler(claude *anthropic.Client, model string) func(c telebot.C
 			return err
 		}
 
-		return c.Send(response.Content[0].Text, telebot.ModeMarkdownV2)
+		return c.Send(response.Content[0].Text)
 	}
 }
