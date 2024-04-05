@@ -6,8 +6,9 @@ type Config struct {
 	ClaudeModel      string
 	ProxyUrl         string
 	AllowedUsernames []string
+	DBUri            string
 }
 
 func (c *Config) IsFilled() bool {
-	return c.TgBotToken != "" && c.AnthropicApiKey != "" && c.ClaudeModel != ""
+	return c.TgBotToken != "" && c.AnthropicApiKey != "" && c.ClaudeModel != "" && c.DBUri != ""
 }

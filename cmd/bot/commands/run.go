@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/app"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/config"
+	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/claude_model"
 	"github.com/urfave/cli/v2"
 	"strings"
 )
@@ -14,22 +15,26 @@ var RunCommand = &cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:     "tg-bot-token",
-			Aliases:  []string{"t"},
 			Required: true,
 			Usage:    "Telegram bot token obtained from the BotFather.",
 			EnvVars:  []string{"APP_TG_BOT_TOKEN"},
 		},
 		&cli.StringFlag{
 			Name:     "anthropic-api-key",
-			Aliases:  []string{"a"},
 			Required: true,
 			Usage:    "Anthropic API key.",
 			EnvVars:  []string{"APP_ANTHROPIC_API_KEY"},
 		},
 		&cli.StringFlag{
+			Name:     "db",
+			Required: true,
+			Usage:    "Database URI. Supported: SQLite",
+			EnvVars:  []string{"APP_DB_URI"},
+		},
+		&cli.StringFlag{
 			Name:    "claude-model",
 			Aliases: []string{"m"},
-			Value:   "claude-3-haiku-20240307",
+			Value:   string(claude_model.ClaudeDefaultModel),
 			Usage:   "Claude model name",
 			EnvVars: []string{"APP_CLAUDE_MODEL"},
 		},
@@ -58,6 +63,7 @@ var RunCommand = &cli.Command{
 			AnthropicApiKey:  cliCtx.String("anthropic-api-key"),
 			ClaudeModel:      cliCtx.String("claude-model"),
 			ProxyUrl:         cliCtx.String("proxy"),
+			DBUri:            cliCtx.String("db"),
 			AllowedUsernames: allowedUsernames,
 		}
 
