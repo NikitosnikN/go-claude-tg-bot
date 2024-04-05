@@ -2,6 +2,9 @@ package app
 
 import (
 	anthropic "github.com/NikitosnikN/go-anthropic-api"
+	"github.com/NikitosnikN/go-claude-tg-bot/internal/adapter/sql_store"
+	"github.com/NikitosnikN/go-claude-tg-bot/internal/app/commands"
+	"github.com/NikitosnikN/go-claude-tg-bot/internal/app/queries"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/config"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/handlers"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/middleware"
@@ -10,10 +13,26 @@ import (
 	"time"
 )
 
+type Commands struct {
+	AddUser            *commands.AddUserHandler
+	AddDialog          *commands.AddDialogHandler
+	AddMessageToDialog *commands.AddMessagesToDialogHandler
+}
+
+type Queries struct {
+	GetUserByID       *queries.GetUserHandler
+	GetLatestDialog   *queries.GetLatestDialogHandler
+	GetDialogMessages *queries.GetDialogMessagesHandler
+}
+
 type App struct {
+	db           *sql_store.SQLStore
 	config       *config.Config
 	bot          *telebot.Bot
 	claudeClient *anthropic.Client
+
+	commands *Commands
+	queries  *Queries
 }
 
 func NewApp(config *config.Config) *App {
@@ -23,6 +42,21 @@ func NewApp(config *config.Config) *App {
 }
 
 func (a *App) build() error {
+	// create DB instance
+	db, err := sql_store.NewSQLStore(a.config.DBUri)
+
+	if err != nil {
+		return err
+	}
+
+	err = db.AutomigrateAll()
+
+	if err != nil {
+		return err
+	}
+
+	a.db = db
+
 	// build anthropic client
 	client := anthropic.NewClient(a.config.AnthropicApiKey)
 
@@ -35,6 +69,20 @@ func (a *App) build() error {
 	}
 
 	a.claudeClient = client
+
+	// build commands
+	a.commands = &Commands{
+		AddUser:            commands.NewAddUserHandler(db),
+		AddDialog:          commands.NewAddDialogHandler(db),
+		AddMessageToDialog: commands.NewAddMessagesToDialogHandler(db),
+	}
+
+	// build queries
+	a.queries = &Queries{
+		GetUserByID:       queries.NewGetUserHandler(db),
+		GetLatestDialog:   queries.NewGetLatestDialogHandler(db),
+		GetDialogMessages: queries.NewGetDialogMessagesHandler(db),
+	}
 
 	// build bot
 	botSettings := telebot.Settings{
@@ -57,11 +105,19 @@ func (a *App) build() error {
 	if len(a.config.AllowedUsernames) != 0 {
 		a.bot.Use(middleware.AllowList(a.config.AllowedUsernames...))
 	}
+	a.bot.Use(middleware.Auth(a.queries.GetUserByID, a.commands.AddUser))
+
 	// build handlers
 	a.bot.Handle(`/start`, handlers.StartHandler)
 	a.bot.Handle(`/help`, handlers.HelpHandler)
 	a.bot.Handle(`/echo`, handlers.EchoHandler)
-	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(a.claudeClient, a.config.ClaudeModel))
+	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(
+		a.claudeClient,
+		a.queries.GetLatestDialog,
+		a.queries.GetDialogMessages,
+		a.commands.AddDialog,
+		a.commands.AddMessageToDialog,
+	))
 	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(a.claudeClient, a.config.ClaudeModel))
 	return nil
 }
@@ -73,7 +129,7 @@ func (a *App) Run() error {
 		}
 	}()
 
-	log.Println("Building bot...")
+	log.Println("Building app...")
 
 	err := a.build()
 
