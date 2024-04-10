@@ -21,6 +21,7 @@ func TextMessageHandler(
 	newTx db.NewDBTx,
 	getLatestDialog *queries.GetLatestDialogHandler,
 	getDialogMessages *queries.GetDialogMessagesHandler,
+	getPhoto *queries.GetPhoto,
 	addDialog *commands.AddDialogHandler,
 	addMessageToDialog *commands.AddMessagesToDialogHandler,
 
@@ -77,7 +78,16 @@ func TextMessageHandler(
 
 		// add old messages from history
 		for _, m := range messages {
-			request.AddTextMessage(anthropic.MessageRole(m.Role), m.Text)
+			if m.PhotoID != "" {
+				photoPayload, err := getPhoto.Handle(m.PhotoID)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+				request.AddImageMessage(anthropic.MessageRole(m.Role), photoPayload, "image/jpeg", m.Text)
+			} else {
+				request.AddTextMessage(anthropic.MessageRole(m.Role), m.Text)
+			}
 		}
 
 		// add new message
