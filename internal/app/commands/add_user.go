@@ -1,23 +1,20 @@
 package commands
 
 import (
-	"github.com/NikitosnikN/go-claude-tg-bot/internal/adapter/sql_store"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/user"
+	"gorm.io/gorm"
 )
 
 type AddUserHandler struct {
-	db *sql_store.SQLStore
 }
 
-func NewAddUserHandler(db *sql_store.SQLStore) *AddUserHandler {
-	return &AddUserHandler{
-		db: db,
-	}
+func NewAddUserHandler() *AddUserHandler {
+	return &AddUserHandler{}
 }
 
-func (h *AddUserHandler) Handle(user *user.User) error {
+func (h *AddUserHandler) Handle(tx *gorm.DB, user *user.User) error {
 
-	result := h.db.DB().Create(user)
+	result := tx.Create(user)
 
 	if result.Error != nil {
 		return result.Error

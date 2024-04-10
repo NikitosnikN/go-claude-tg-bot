@@ -1,22 +1,21 @@
 package queries
 
 import (
-	"github.com/NikitosnikN/go-claude-tg-bot/internal/adapter/sql_store"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/user"
+	"gorm.io/gorm"
 )
 
 type GetUserHandler struct {
-	db *sql_store.SQLStore
 }
 
-func NewGetUserHandler(db *sql_store.SQLStore) *GetUserHandler {
-	return &GetUserHandler{db: db}
+func NewGetUserHandler() *GetUserHandler {
+	return &GetUserHandler{}
 }
 
-func (h *GetUserHandler) Handle(userID uint) (*user.User, error) {
+func (h *GetUserHandler) Handle(tx *gorm.DB, userID uint) (*user.User, error) {
 	u := &user.User{}
 
-	result := h.db.DB().Where(&user.User{ID: userID}).First(u)
+	result := tx.Where(&user.User{ID: userID}).First(u)
 
 	if result.Error != nil {
 		return nil, result.Error

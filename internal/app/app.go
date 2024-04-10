@@ -72,16 +72,16 @@ func (a *App) build() error {
 
 	// build commands
 	a.commands = &Commands{
-		AddUser:            commands.NewAddUserHandler(db),
-		AddDialog:          commands.NewAddDialogHandler(db),
-		AddMessageToDialog: commands.NewAddMessagesToDialogHandler(db),
+		AddUser:            commands.NewAddUserHandler(),
+		AddDialog:          commands.NewAddDialogHandler(),
+		AddMessageToDialog: commands.NewAddMessagesToDialogHandler(),
 	}
 
 	// build queries
 	a.queries = &Queries{
-		GetUserByID:       queries.NewGetUserHandler(db),
-		GetLatestDialog:   queries.NewGetLatestDialogHandler(db),
-		GetDialogMessages: queries.NewGetDialogMessagesHandler(db),
+		GetUserByID:       queries.NewGetUserHandler(),
+		GetLatestDialog:   queries.NewGetLatestDialogHandler(),
+		GetDialogMessages: queries.NewGetDialogMessagesHandler(),
 	}
 
 	// build bot
@@ -105,14 +105,25 @@ func (a *App) build() error {
 	if len(a.config.AllowedUsernames) != 0 {
 		a.bot.Use(middleware.AllowList(a.config.AllowedUsernames...))
 	}
-	a.bot.Use(middleware.Auth(a.queries.GetUserByID, a.commands.AddUser))
+	a.bot.Use(
+		middleware.Auth(
+			a.db.NewTx,
+			a.queries.GetUserByID,
+			a.commands.AddUser,
+		),
+	)
 
 	// build handlers
 	a.bot.Handle(`/start`, handlers.StartHandler)
 	a.bot.Handle(`/help`, handlers.HelpHandler)
 	a.bot.Handle(`/echo`, handlers.EchoHandler)
+	a.bot.Handle(`/new`, handlers.NewHandler(
+		a.db.NewTx,
+		a.commands.AddDialog,
+	))
 	a.bot.Handle(telebot.OnText, handlers.TextMessageHandler(
 		a.claudeClient,
+		a.db.NewTx,
 		a.queries.GetLatestDialog,
 		a.queries.GetDialogMessages,
 		a.commands.AddDialog,

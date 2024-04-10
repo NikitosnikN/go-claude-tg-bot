@@ -1,22 +1,20 @@
 package queries
 
 import (
-	"github.com/NikitosnikN/go-claude-tg-bot/internal/adapter/sql_store"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/dialog"
+	"gorm.io/gorm"
 )
 
-type GetLatestDialogHandler struct {
-	db *sql_store.SQLStore
+type GetLatestDialogHandler struct{}
+
+func NewGetLatestDialogHandler() *GetLatestDialogHandler {
+	return &GetLatestDialogHandler{}
 }
 
-func NewGetLatestDialogHandler(db *sql_store.SQLStore) *GetLatestDialogHandler {
-	return &GetLatestDialogHandler{db: db}
-}
-
-func (h *GetLatestDialogHandler) Handle(userID uint) (*dialog.Dialog, error) {
+func (h *GetLatestDialogHandler) Handle(tx *gorm.DB, userID uint) (*dialog.Dialog, error) {
 	u := &dialog.Dialog{}
 
-	result := h.db.DB().Order("created_at desc").Where(&dialog.Dialog{UserID: userID}).First(u)
+	result := tx.Order("created_at desc").Where(&dialog.Dialog{UserID: userID}).First(u)
 
 	if result.Error != nil {
 		return nil, result.Error
