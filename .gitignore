@@ -22,4 +22,5 @@ go.work
 
 .env
 .idea
+.plandex
 test.db
