@@ -23,6 +23,7 @@ type Queries struct {
 	GetUserByID       *queries.GetUserHandler
 	GetLatestDialog   *queries.GetLatestDialogHandler
 	GetDialogMessages *queries.GetDialogMessagesHandler
+	GetPhoto          *queries.GetPhoto
 }
 
 type App struct {
@@ -70,6 +71,18 @@ func (a *App) build() error {
 
 	a.claudeClient = client
 
+	// build bot
+	bot, err := telebot.NewBot(telebot.Settings{
+		Token:       a.config.TgBotToken,
+		Poller:      &telebot.LongPoller{Timeout: 30 * time.Second},
+		Synchronous: false,
+	})
+
+	if err != nil {
+		return err
+	}
+	a.bot = bot
+
 	// build commands
 	a.commands = &Commands{
 		AddUser:            commands.NewAddUserHandler(),
@@ -82,23 +95,10 @@ func (a *App) build() error {
 		GetUserByID:       queries.NewGetUserHandler(),
 		GetLatestDialog:   queries.NewGetLatestDialogHandler(),
 		GetDialogMessages: queries.NewGetDialogMessagesHandler(),
+		GetPhoto:          queries.NewGetPhoto(a.bot),
 	}
 
-	// build bot
-	botSettings := telebot.Settings{
-		Token:       a.config.TgBotToken,
-		Poller:      &telebot.LongPoller{Timeout: 30 * time.Second},
-		Synchronous: false,
-	}
-
-	bot, err := telebot.NewBot(botSettings)
-
-	if err != nil {
-		return err
-	}
-	a.bot = bot
-
-	// add middlewares
+	// build bot middlewares
 	//a.bot.Use(middleware.Logger())
 
 	a.bot.Use(middleware.VerboseLogger())
@@ -113,7 +113,7 @@ func (a *App) build() error {
 		),
 	)
 
-	// build handlers
+	// build bot handlers
 	a.bot.Handle(`/start`, handlers.StartHandler)
 	a.bot.Handle(`/help`, handlers.HelpHandler)
 	a.bot.Handle(`/echo`, handlers.EchoHandler)
@@ -126,10 +126,19 @@ func (a *App) build() error {
 		a.db.NewTx,
 		a.queries.GetLatestDialog,
 		a.queries.GetDialogMessages,
+		a.queries.GetPhoto,
 		a.commands.AddDialog,
 		a.commands.AddMessageToDialog,
 	))
-	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(a.claudeClient, a.config.ClaudeModel))
+	a.bot.Handle(telebot.OnPhoto, handlers.PhotoMessageHandler(
+		a.claudeClient,
+		a.db.NewTx,
+		a.queries.GetLatestDialog,
+		a.queries.GetDialogMessages,
+		a.queries.GetPhoto,
+		a.commands.AddDialog,
+		a.commands.AddMessageToDialog,
+	))
 	return nil
 }
 
