@@ -1,22 +1,19 @@
 package commands
 
 import (
-	"github.com/NikitosnikN/go-claude-tg-bot/internal/adapter/sql_store"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/message"
+	"gorm.io/gorm"
 )
 
 type AddMessagesToDialogHandler struct {
-	db *sql_store.SQLStore
 }
 
-func NewAddMessagesToDialogHandler(db *sql_store.SQLStore) *AddMessagesToDialogHandler {
-	return &AddMessagesToDialogHandler{
-		db: db,
-	}
+func NewAddMessagesToDialogHandler() *AddMessagesToDialogHandler {
+	return &AddMessagesToDialogHandler{}
 }
 
-func (h *AddMessagesToDialogHandler) Handle(message *message.Message) error {
-	result := h.db.DB().Create(message)
+func (h *AddMessagesToDialogHandler) Handle(tx *gorm.DB, message *message.Message) error {
+	result := tx.Create(message)
 
 	if result.Error != nil {
 		return result.Error

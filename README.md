@@ -4,27 +4,19 @@ A Telegram bot that utilizes the Claude AI language model to provide interactive
 
 ## Introduction
 
-The Go Claude Telegram Bot is a Telegram bot built using the Go programming language and the Claude AI language model.
-It enables users to engage in interactive conversations and receive assistance from the powerful Claude AI directly
-through their Telegram chats.
-
-Currently only long-polling way of retrieving new messages is supported.
-
-## Features
-
-- Natural language conversation with the Claude AI
-- Assistance with various tasks such as writing, analysis, question answering, math, and coding
-- Seamless integration with Telegram for easy access and interaction
-- Customizable configuration options
-- Lightweight and efficient implementation in Go
-
-## Installation (via Docker)
-
-```shell
-docker run nikitosnik/go-claude-tg-bot
-```
+The Go Claude Telegram Bot is a powerful tool built using the Go programming language and the Claude AI language model. 
+It enables users to engage in interactive conversations and receive assistance directly through their Telegram chats. 
+Whether you need help with writing, analysis, question answering, math, or coding, Go Claude is here to assist.
 
 ## Installation
+
+### Via Docker
+
+```shell
+docker run nikitosnik/go-claude-tg-bot:latest
+```
+
+### On Local machine
 
 1. Clone the repository:
 

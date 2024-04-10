@@ -58,3 +58,7 @@ func (s *SQLStore) AutomigrateAll() (err error) {
 func (s *SQLStore) DB() *gorm.DB {
 	return s.db
 }
+
+func (s *SQLStore) NewTx() *gorm.DB {
+	return s.db.Begin()
+}
