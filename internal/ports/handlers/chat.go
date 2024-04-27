@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-const lastMessageExpireInteval = 15 * time.Minute
+const lastMessageExpireInterval = 15 * time.Minute
 
 func HandleDialogInteraction(
 	c telebot.Context,
@@ -51,7 +51,7 @@ func HandleDialogInteraction(
 	var d *dialog.Dialog
 	var messages []*message.Message
 
-	d, err = getLatestDialog.Handle(tx, u.ID, lastMessageExpireInteval)
+	d, err = getLatestDialog.Handle(tx, u.ID, lastMessageExpireInterval)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, aerrors.DialogExpired) {
 		// create new dialog
