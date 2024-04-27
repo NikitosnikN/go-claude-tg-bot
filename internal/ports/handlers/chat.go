@@ -10,11 +10,15 @@ import (
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/dialog"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/message"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/domain/user"
+	aerrors "github.com/NikitosnikN/go-claude-tg-bot/internal/errors"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/utils"
 	"gopkg.in/telebot.v3"
 	"gorm.io/gorm"
 	"log"
+	"time"
 )
+
+const lastMessageExpireInteval = 15 * time.Minute
 
 func HandleDialogInteraction(
 	c telebot.Context,
@@ -47,11 +51,10 @@ func HandleDialogInteraction(
 	var d *dialog.Dialog
 	var messages []*message.Message
 
-	d, err = getLatestDialog.Handle(tx, u.ID)
+	d, err = getLatestDialog.Handle(tx, u.ID, lastMessageExpireInteval)
 
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	} else if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, aerrors.DialogExpired) {
+		// create new dialog
 		d = dialog.NewDialog(u.ID)
 
 		err = addDialog.Handle(tx, d)
@@ -60,6 +63,15 @@ func HandleDialogInteraction(
 			tx.Rollback()
 			return err
 		}
+
+		err = c.Send("Starting new dialog...")
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else if err != nil {
+		return err
 	} else {
 		messages, err = getDialogMessages.Handle(tx, d.ID)
 

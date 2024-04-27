@@ -6,8 +6,8 @@ import (
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/app/commands"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/app/queries"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/config"
-	"github.com/NikitosnikN/go-claude-tg-bot/internal/handlers"
 	"github.com/NikitosnikN/go-claude-tg-bot/internal/middleware"
+	"github.com/NikitosnikN/go-claude-tg-bot/internal/ports/handlers"
 	"gopkg.in/telebot.v3"
 	"log"
 	"time"
@@ -101,6 +101,7 @@ func (a *App) build() error {
 	// build bot middlewares
 	//a.bot.Use(middleware.Logger())
 
+	a.bot.Use(middleware.ErrorHandler())
 	a.bot.Use(middleware.VerboseLogger())
 	if len(a.config.AllowedUsernames) != 0 {
 		a.bot.Use(middleware.AllowList(a.config.AllowedUsernames...))
